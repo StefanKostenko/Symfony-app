@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+{% block title %} Contactos {% endblock %}
+{% block body %}
+
+    <h1>Ficha del producto</h1>
+    {% if productos %}
+        {% for producto in productos %}
+            {{include ('partials/datos_producto.html.twig', { 'producto': producto})}}
+        {% endfor %}
+    {% else %}
+        <p>No se han encontrado productos!</p>
+    {% endif %}
+{% endblock %}
