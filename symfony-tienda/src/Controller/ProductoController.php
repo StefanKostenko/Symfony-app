@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Producto;
 use App\Entity\Tienda;
+use App\Form\ProductoType;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
@@ -31,14 +32,8 @@ class ProductoController extends AbstractController{
     public function nuevo(ManagerRegistry $doctrine, Request $request) {
         $producto = new Producto();
 
-        $formulario = $this->createFormBuilder($producto)
-        ->add('producto', TextType::class)
-        ->add('modelo', TextType::class)
-        ->add('caracteristicas', TextType::class)
-        ->add('precio', TextType::class)
-        ->add('tienda', EntityType::class , array('class' => Tienda::class, 'choice_label' => 'nombre',))
-        ->add('save', SubmitType::class, array('label' => 'Enviar'))
-        ->getForm();
+        $formulario = $this->createForm(ProductoType::class, $producto);
+
         $formulario->handleRequest($request);
 
         if($formulario->isSubmitted() && $formulario->isValid()){
@@ -63,28 +58,30 @@ class ProductoController extends AbstractController{
 
         $producto = $repositorio->find($codigo);
 
-        $formulario = $this->createFormBuilder($producto)
-        ->add('producto', TextType::class)
-        ->add('modelo', TextType::class)
-        ->add('caracteristicas', TextType::class)
-        ->add('precio', TextType::class)
-        ->add('tienda', EntityType::class , array('class' => Tienda::class, 'choice_label' => 'nombre',))
-        ->add('save', SubmitType::class, array('label' => 'Enviar'))
-        ->getForm();
+        if ($producto){
 
-        $formulario->handleRequest($request);
+            $formulario = $this->createForm(ProductoType::class, $producto);
+    
+    
 
-        if($formulario->isSubmitted() && $formulario->isValid()){
-            $producto = $formulario->getData();
-            $entityManager = $doctrine->getManager();
-            $entityManager -> persist($producto);
-            $entityManager -> flush();
-            return $this -> redirectToRoute('ficha_producto', ["codigo" => $producto->getId()]);
+            $formulario->handleRequest($request);
+
+            if($formulario->isSubmitted() && $formulario->isValid()){
+                $producto = $formulario->getData();
+                $entityManager = $doctrine->getManager();
+                $entityManager -> persist($producto);
+                $entityManager -> flush();
+                return $this -> redirectToRoute('ficha_producto', ["codigo" => $producto->getId()]);
+            }
+
+            return $this->render('editar.html.twig', array(
+                'formulario' => $formulario->createView()
+            ));
+        }else{
+            return $this->render('ficha_producto.html.twig',[
+                'producto' => NULL
+            ]);
         }
-
-        return $this->render('editar.html.twig', array(
-            'formulario' => $formulario->createView()
-        ));
     }
 
     /**
